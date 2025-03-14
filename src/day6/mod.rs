@@ -3,7 +3,6 @@ use std::collections::{HashMap, HashSet};
 
 use crate::read_input;
 
-const VISITED_CHAR: char = 'X';
 const OBSTACLE_CHAR: char = '#';
 
 #[derive(Hash, PartialEq, Eq, Clone, Copy)]
@@ -61,6 +60,14 @@ impl Grid {
         self.0[position.row as usize][position.col as usize] == OBSTACLE_CHAR
     }
 
+    fn set_obstacle_at(&mut self, position: &Position) {
+        self.0[position.row as usize][position.col as usize] = OBSTACLE_CHAR
+    }
+
+    fn clean_at(&mut self, position: &Position) {
+        self.0[position.row as usize][position.col as usize] = '.'
+    }
+
     fn find_initial_guard_position(&self) -> Position {
         for r in 0..self.0.len() {
             for c in 0..self.0[r].len() {
@@ -86,10 +93,16 @@ impl Grid {
 
 struct Runner<'a> {
     grid: &'a Grid,
-    guard_position: Position,
-    guard_direction: Direction,
+    pub guard_position: Position,
+    pub guard_direction: Direction,
     pub distinct_visited: i32,
     pub visited_cells: HashMap<Position, HashSet<Direction>>,
+}
+
+#[derive(PartialEq, Eq)]
+enum RunEnd {
+    Loop,
+    OutOfGrid,
 }
 
 impl<'a> Runner<'a> {
@@ -105,6 +118,13 @@ impl<'a> Runner<'a> {
 
     fn has_guard_position_been_visited(&self) -> bool {
         self.visited_cells.contains_key(&self.guard_position)
+    }
+
+    fn is_in_loop(&self) -> bool {
+        if let Some(directions) = self.visited_cells.get(&self.guard_position) {
+            return directions.contains(&self.guard_direction);
+        }        
+        false
     }
 
     fn mark_as_visited(&mut self) {
@@ -145,10 +165,13 @@ impl<'a> Runner<'a> {
         return None;
     }
 
-    pub fn run(&mut self) {
+    pub fn run(&mut self) -> RunEnd {
         while self.grid.is_valid_position(&self.guard_position) {
             if !self.has_guard_position_been_visited() {
                 self.distinct_visited += 1;
+            }
+            if self.is_in_loop() {
+                return RunEnd::Loop;
             }
             self.mark_as_visited();
 
@@ -157,10 +180,14 @@ impl<'a> Runner<'a> {
             {
                 self.guard_position = next_position;
                 self.guard_direction = next_direction;
+
+
             } else {
-                break;
+                return RunEnd::OutOfGrid;
             }
         }
+
+        RunEnd::OutOfGrid
     }
 }
 
@@ -182,4 +209,31 @@ pub fn run_part_1() {
     runner.run();
 
     println!("{}", runner.distinct_visited);
+}
+
+pub fn run_part_2() {
+    let mut grid = init_grid();
+
+    let mut runner = Runner::new(&grid);
+    let initial_position = runner.guard_position;
+    runner.run();
+
+    let mut visited_cells = runner.visited_cells;
+    visited_cells.remove(&initial_position);
+
+    let loops_counter = visited_cells.keys().into_iter().fold(0, |loops_counter, obstacle_position| {        
+        grid.set_obstacle_at(obstacle_position);
+        
+        let mut runner = Runner::new(&grid);
+        let run_end = runner.run();
+        grid.clean_at(obstacle_position);
+
+        if run_end == RunEnd::Loop {
+            loops_counter + 1
+        } else {
+            loops_counter
+        }
+    });
+
+    println!("{loops_counter}");
 }
