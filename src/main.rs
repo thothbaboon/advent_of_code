@@ -27,5 +27,6 @@ fn main() {
     // day5::run_part_2();
     // day6::run_part_1();
     // day6::run_part_2();
-    day7::run_part_1();
+    // day7::run_part_1();
+    day7::run_part_2();
 }
