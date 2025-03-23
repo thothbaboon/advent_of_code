@@ -4,8 +4,8 @@ use std::io::{self};
 
 #[derive(Debug)]
 struct Coordinate {
-    x: isize,
-    y: isize,
+    x: usize,
+    y: usize,
 }
 
 struct ClawConfiguration {
@@ -19,6 +19,11 @@ impl ClawConfiguration {
         v1.x as f64 * v2.y as f64 - v1.y as f64 * v2.x as f64
     }
 
+    pub fn adjust_prize(&mut self, prize_adjustment: usize) {
+        self.prize.x += prize_adjustment;
+        self.prize.y += prize_adjustment;
+    }
+
     pub fn count_tokens(&self) -> f64 {
         let d = Self::compute_determinant(&self.a, &self.b);
         let d_a = Self::compute_determinant(&self.prize, &self.b);
@@ -28,8 +33,8 @@ impl ClawConfiguration {
     }
 }
 
-fn parse_coordinate(s: &str, delimiter: &str) -> isize {
-    s.split_once(delimiter).unwrap().1.parse::<isize>().unwrap()
+fn parse_coordinate(s: &str, delimiter: &str) -> usize {
+    s.split_once(delimiter).unwrap().1.parse::<usize>().unwrap()
 }
 
 fn extract_button_coordinates(s: &str, delimiter: &str) -> Coordinate {
@@ -59,13 +64,25 @@ fn read_configurations() -> Vec<ClawConfiguration> {
         .collect::<Vec<_>>()
 }
 
-pub fn run_part_1() {
-    let tokens = read_configurations()
-        .iter()
+pub fn run(prize_adjustment: usize) -> usize {
+    read_configurations()
+        .into_iter()
+        .map(|mut config| {
+            config.adjust_prize(prize_adjustment);
+            config
+        })
         .map(|config| config.count_tokens())
         .filter(|count| count.floor() == *count)
         .map(|count| count as usize)
-        .sum::<usize>();
+        .sum::<usize>()
+}
 
-    println!("{tokens}");
+pub fn run_part_1() {
+    let count = run(0);
+    println!("{count}");
+}
+
+pub fn run_part_2() {
+    let count = run(10000000000000);
+    println!("{count}");
 }
