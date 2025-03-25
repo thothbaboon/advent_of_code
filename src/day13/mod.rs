@@ -24,6 +24,7 @@ impl ClawConfiguration {
         self.prize.y += prize_adjustment;
     }
 
+    // Using Cramer's Rule
     pub fn count_tokens(&self) -> f64 {
         let d = Self::compute_determinant(&self.a, &self.b);
         let d_a = Self::compute_determinant(&self.prize, &self.b);
