@@ -2,7 +2,6 @@ use crate::read_input;
 
 const COLS: i32 = 101;
 const ROWS: i32 = 103;
-const SECONDS: usize = 100;
 
 #[derive(Debug)]
 struct Robot {
@@ -17,6 +16,14 @@ struct BathroomSecurity {
 }
 
 impl BathroomSecurity {
+    pub fn check_has_tree(&self) -> bool {
+        // leverage the debug function built for step 1
+        // not the most efficient, but makes it very easy 
+        self.print_debug()
+            .split("\n")
+            .any(|row| row.split(" ").any(|consecutive| consecutive.len() > 10))
+    }
+
     pub fn simulate(&mut self, seconds: usize) {
         self.robots.iter_mut().for_each(|robot| {
             let c = robot.col + (seconds as i32 * robot.col_velocity);
@@ -37,26 +44,29 @@ impl BathroomSecurity {
         });
     }
 
-    pub fn print_debug(&self) {
+    pub fn print_debug(&self) -> String {
         let mut map = vec![vec![0usize; COLS as usize]; ROWS as usize];
 
         for robot in self.robots.iter() {
             map[robot.row as usize][robot.col as usize] += 1;
         }
 
-        for row in map {
-            let s = row
-                .iter()
-                .map(|n| {
-                    if *n == 0 {
-                        ".".to_string()
-                    } else {
-                        n.to_string()
-                    }
-                })
-                .collect::<String>();
-            println!("{}", s);
-        }
+        map.iter()
+            .map(|row| {
+                let s = row
+                    .iter()
+                    .map(|n| {
+                        if *n == 0 {
+                            " ".to_string()
+                        } else {
+                            n.to_string()
+                        }
+                    })
+                    .collect::<String>();
+                return s;
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
     }
 
     pub fn compute_safety_factor(&self) -> usize {
@@ -128,8 +138,22 @@ fn build_bathroom_security() -> BathroomSecurity {
 
 pub fn run_part_1() {
     let mut bathroom_security = build_bathroom_security();
-    bathroom_security.simulate(SECONDS);
+    bathroom_security.simulate(100);
     let safety_factor = bathroom_security.compute_safety_factor();
-    // bathroom_security.print_debug();
+    println!("{}", bathroom_security.print_debug());
     println!("{safety_factor}");
+}
+
+pub fn run_part_2() {
+    for seconds in 0..10000 {
+        let mut bathroom_security = build_bathroom_security();
+        bathroom_security.simulate(seconds);
+
+        if bathroom_security.check_has_tree() {
+            println!("{}", bathroom_security.print_debug());
+            println!("");
+            println!("Solution = {seconds}");
+            break;
+        }
+    }
 }
