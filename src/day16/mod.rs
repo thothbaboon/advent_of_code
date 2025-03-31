@@ -1,47 +1,21 @@
-use std::{
-    collections::{BinaryHeap, HashMap, HashSet},
-    result, usize,
-};
+use lazy_static::lazy_static;
+use std::collections::{BinaryHeap, HashMap};
 
 use crate::read_input;
 
-#[derive(PartialEq, Eq)]
-enum CellKind {
-    Empty,
-    Wall,
+fn parse_maze() -> Vec<Vec<char>> {
+    read_input("day16", "input.txt")
+        .unwrap()
+        .filter_map(Result::ok)
+        .map(|line| line.chars().collect::<Vec<_>>())
+        .collect::<Vec<_>>()
 }
 
-#[derive(PartialEq, Eq, Debug, Clone)]
-enum Direction {
-    North,
-    East,
-    South,
-    West,
-}
-
-#[derive(Hash, PartialEq, Eq, Debug, Clone)]
-struct Position(usize, usize);
-
-#[derive(Debug)]
-struct Graph(HashMap<Position, Vec<Position>>);
-
-#[derive(PartialEq, Eq, Debug, Clone)]
+#[derive(Eq, PartialEq)]
 struct Node {
     position: Position,
+    direction: (isize, isize),
     score: usize,
-    direction: Option<Direction>,
-    from: Option<Position>,
-}
-
-impl Node {
-    fn new(position: Position) -> Self {
-        Self {
-            position,
-            score: usize::MAX,
-            direction: None,
-            from: None,
-        }
-    }
 }
 
 impl Ord for Node {
@@ -51,157 +25,101 @@ impl Ord for Node {
             .cmp(&self.score)
             .then_with(|| self.position.0.cmp(&other.position.0))
             .then_with(|| self.position.1.cmp(&other.position.1))
+            .then_with(|| self.direction.cmp(&other.direction))
     }
 }
-
 impl PartialOrd for Node {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
-fn init_graph() -> (Graph, Position, Position) {
-    let input = read_input("day16", "input.txt")
-        .unwrap()
-        .filter_map(Result::ok)
-        .collect::<Vec<_>>();
+const EAST: (isize, isize) = (0, 1);
+const WEST: (isize, isize) = (0, -1);
+const SOUTH: (isize, isize) = (1, 0);
+const NORTH: (isize, isize) = (-1, 0);
 
-    let start = Position(input.len() - 2, 1);
-    let end = Position(1, input[0].len() - 2);
+lazy_static! {
+    static ref ROTATE_CLOCKWISE: HashMap<(isize, isize), (isize, isize)> = {
+        let mut m = HashMap::new();
+        m.insert(NORTH, EAST);
+        m.insert(EAST, SOUTH);
+        m.insert(SOUTH, WEST);
+        m.insert(WEST, NORTH);
+        m
+    };
+    static ref ROTATE_COUNTERCLOCKWISE: HashMap<(isize, isize), (isize, isize)> = {
+        let mut m = HashMap::new();
+        m.insert(EAST, NORTH);
+        m.insert(SOUTH, EAST);
+        m.insert(WEST, SOUTH);
+        m.insert(NORTH, WEST);
+        m
+    };
+}
 
-    let grid: Vec<Vec<CellKind>> = input
-        .iter()
-        .map(|row| {
-            row.chars()
-                .map(|c| {
-                    if c == '#' {
-                        CellKind::Wall
-                    } else {
-                        CellKind::Empty
-                    }
-                })
-                .collect::<Vec<_>>()
-        })
-        .collect::<Vec<_>>();
+#[derive(Eq, PartialEq, Hash, Clone, Debug)]
+struct Position(usize, usize);
 
-    let mut graph = Graph(HashMap::new());
+fn run(
+    maze: Vec<Vec<char>>,
+    start: Position,
+    _end: &Position,
+) -> HashMap<(Position, (isize, isize)), usize> {
+    let mut queue = BinaryHeap::new();
+    queue.push(Node {
+        position: start,
+        direction: EAST,
+        score: 0,
+    });
 
-    let directions: [(isize, isize); 4] = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+    let mut shortest_distances: HashMap<(Position, (isize, isize)), usize> = HashMap::new();
 
-    for row in 1..(grid.len() - 1) {
-        for col in 1..(grid[row].len() - 1) {
-            if grid[row][col] == CellKind::Wall {
-                continue;
-            }
-
-            let mut neighbors = Vec::new();
-
-            for (dr, dc) in &directions {
-                let r = (row as isize + dr) as usize;
-                let c = (col as isize + dc) as usize;
-
-                if grid[r][c] == CellKind::Empty {
-                    neighbors.push(Position(r, c));
-                }
-            }
-
-            graph.0.insert(Position(row, col), neighbors);
+    while let Some(node) = queue.pop() {
+        if shortest_distances.contains_key(&(node.position.clone(), node.direction)) {
+            continue;
         }
+        shortest_distances.insert((node.position.clone(), node.direction), node.score);
+
+        let next_position = Position(
+            (node.position.0 as isize + node.direction.0) as usize,
+            (node.position.1 as isize + node.direction.1) as usize,
+        );
+        if maze[next_position.0][next_position.1] != '#' {
+            queue.push(Node {
+                position: next_position.clone(),
+                direction: node.direction,
+                score: node.score + 1,
+            });
+        }
+
+        queue.push(Node {
+            position: node.position.clone(),
+            direction: *ROTATE_CLOCKWISE.get(&node.direction).unwrap(),
+            score: node.score + 1000,
+        });
+        queue.push(Node {
+            position: node.position,
+            direction: *ROTATE_COUNTERCLOCKWISE.get(&node.direction).unwrap(),
+            score: node.score + 1000,
+        });
     }
 
-    (graph, start, end)
+    shortest_distances
 }
 
 pub fn run_part_1() {
-    let (graph, start, end) = init_graph();
-    let results = run_dijkstra(&graph, &start, &end);
+    let maze = parse_maze();
+    let start = Position(maze.len() - 2, 1);
+    let end = Position(1, maze[0].len() - 2);
 
-    if let Some(result) = results.get(&end) {
-        println!("YOLOOOO {:?}", result);
-    }
-}
+    let shortest_distances = run(maze, start, &end);
 
-fn run_dijkstra(graph: &Graph, start: &Position, end: &Position) -> HashMap<Position, Node> {
-    let mut queue = BinaryHeap::new();
-    graph.0.keys().for_each(|position| {
-        let mut node = Node::new(position.to_owned());
-        if position == start {
-            node.score = 0;
-            node.direction = Some(Direction::East);
-        }
-        queue.push(node);
-    });
-
-    let mut visited = HashSet::new();
-
-    let mut results = HashMap::new();
-
-    while let Some(node) = queue.pop() {
-        if visited.contains(&node.position) {
-            continue;
-        }
-        visited.insert(node.position.clone());
-
-        if let Some(neighbors) = graph.0.get(&node.position) {
-            for neighbor in neighbors {
-                if !visited.contains(neighbor) {
-                    let (new_direction, rotations) = compute_rotation(
-                        &node.position,
-                        neighbor,
-                        &node.direction.as_ref().unwrap(),
-                    );
-                    let score = node.score + rotations * 1000 + 1;
-
-                    queue.push(Node {
-                        score,
-                        direction: Some(new_direction),
-                        from: Some(node.position.clone()),
-                        position: neighbor.clone(),
-                    });
-                }
-            }
-        }
-
-        results.insert(node.position.clone(), node.clone());
-    }
-
-    results
-}
-
-fn compute_rotation(
-    inital: &Position,
-    target: &Position,
-    direction: &Direction,
-) -> (Direction, usize) {
-    let pos_change = (
-        (target.0 as isize - inital.0 as isize),
-        (target.1 as isize - inital.1 as isize),
-    );
-    let target_direction = match pos_change {
-        (0, 1) => Direction::East,
-        (0, -1) => Direction::West,
-        (1, 0) => Direction::South,
-        _ => Direction::North,
-    };
-
-    if &target_direction == direction {
-        return (target_direction, 0);
-    }
-
-    let rotations_order = [
-        Direction::North,
-        Direction::East,
-        Direction::South,
-        Direction::West,
-    ];
-    let direction_index = rotations_order.iter().position(|d| d == direction).unwrap() as isize;
-    let target_direction_index = rotations_order
+    let min_distance = [EAST, NORTH, SOUTH, WEST]
         .iter()
-        .position(|d| d == &target_direction)
-        .unwrap() as isize;
+        .filter_map(|dir| shortest_distances.get(&(end.clone(), *dir)))
+        .min()
+        .unwrap();
 
-    let clockwise = (target_direction_index - direction_index + 4) % 4;
-    let counter_clockwise = (direction_index - target_direction_index + 4) % 4;
-
-    (target_direction, clockwise.min(counter_clockwise) as usize)
+    println!("{:?}", min_distance);
 }
