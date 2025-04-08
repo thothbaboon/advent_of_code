@@ -1,6 +1,7 @@
 use crate::read_input;
 use std::ops::Div;
 
+#[derive(Clone)]
 struct Instruction {
     opcode: u8,
     operand: u8,
@@ -130,4 +131,34 @@ pub fn run_part_1() {
             .collect::<Vec<String>>()
             .join(",")
     )
+}
+
+fn run_instructions(a: usize) -> usize {
+    let b = (a % 8) ^ 1;
+    let c = a.div(2_usize.pow(b as u32));
+    ((b ^ c) ^ 6) % 8
+}
+
+pub fn run_part_2() {
+    let mut targets = [2, 4, 1, 1, 7, 5, 4, 0, 0, 3, 1, 6, 5, 5, 3, 0];
+    targets.reverse();
+
+    let mut a_candidates = [0].to_vec();
+
+    for target in targets {
+        let mut next_a_candidates = Vec::new();
+        for xxx in 0..8 {
+            for candidate in a_candidates.iter() {
+                let a = candidate << 3 | xxx;
+                let output = run_instructions(a);
+                if output == target {
+                    next_a_candidates.push(a);
+                }
+            }
+        }
+
+        a_candidates = next_a_candidates;
+    }
+
+    println!("{}", a_candidates.iter().min().unwrap());
 }
