@@ -1,4 +1,4 @@
-use std::collections::{BinaryHeap, HashMap};
+use std::collections::{BinaryHeap, HashMap, HashSet};
 
 use crate::read_input;
 
@@ -7,28 +7,13 @@ struct MemorySpace {
     is_corrupted: bool,
 }
 
-impl MemorySpace {
-    pub fn to_string(&self) -> String {
-        if self.is_corrupted {
-            "#".to_string()
-        } else {
-            ".".to_string()
-        }
-    }
-}
-
-impl std::fmt::Display for MemorySpace {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.to_string())
-    }
-}
-
 type Memory = Vec<Vec<MemorySpace>>;
 type Coordinate = (usize, usize);
 
 #[derive(PartialEq, Eq, Debug)]
 struct PathFindingMemorySpace {
     coordinate: Coordinate,
+    predecessor: Option<Coordinate>,
     score: usize,
 }
 
@@ -77,26 +62,72 @@ impl Computer {
         }
     }
 
-    pub fn find_shortest_path(&self) -> usize {
+    fn extract_shortest_path(
+        predecessors: &HashMap<Coordinate, Coordinate>,
+    ) -> HashSet<Coordinate> {
+        let mut coordinates = HashSet::new();
+
+        let mut predecessor = Some((MEMORY_SIZE - 1, MEMORY_SIZE - 1));
+
+        while let Some(p) = predecessor {
+            coordinates.insert(p);
+            predecessor = predecessors.get(&p).copied();
+        }
+
+        coordinates
+    }
+
+    pub fn run_simulation_until_blocked(&mut self, start_at: usize) -> Coordinate {
+        for i in 0..start_at {
+            self.memory[self.fallen_bytes[i].0][self.fallen_bytes[i].1].is_corrupted = true;
+        }
+
+        let mut shortest_path = self.find_shortest_path();
+        let mut i = start_at;
+
+        while i < self.fallen_bytes.len() {
+            self.memory[self.fallen_bytes[i].0][self.fallen_bytes[i].1].is_corrupted = true;
+            if let Some(path) = &shortest_path {
+                if path.contains(&self.fallen_bytes[i]) {
+                    shortest_path = self.find_shortest_path();
+
+                    if shortest_path.is_none() {
+                        return self.fallen_bytes[i];
+                    }
+                }
+            }
+
+            i += 1;
+        }
+
+        panic!("No blocking byte found");
+    }
+
+    pub fn find_shortest_path(&self) -> Option<HashSet<Coordinate>> {
         let start = PathFindingMemorySpace {
             coordinate: (0, 0),
+            predecessor: None,
             score: 0,
         };
         let mut queue = BinaryHeap::new();
         queue.push(start);
 
         let mut smallest_scores: HashMap<Coordinate, usize> = HashMap::new();
+        let mut predecessors: HashMap<Coordinate, Coordinate> = HashMap::new();
 
         while let Some(space) = queue.pop() {
             if smallest_scores.contains_key(&space.coordinate) {
                 continue;
             }
+            smallest_scores.insert(space.coordinate, space.score);
 
-            if space.coordinate == (MEMORY_SIZE - 1, MEMORY_SIZE - 1) {
-                return space.score;
+            if let Some(p) = space.predecessor {
+                predecessors.insert(space.coordinate, p);
             }
 
-            smallest_scores.insert(space.coordinate, space.score);
+            if space.coordinate == (MEMORY_SIZE - 1, MEMORY_SIZE - 1) {
+                return Some(Self::extract_shortest_path(&predecessors));
+            }
 
             let directions: [(isize, isize); 4] = [(1, 0), (-1, 0), (0, 1), (0, -1)];
 
@@ -120,19 +151,13 @@ impl Computer {
 
                 queue.push(PathFindingMemorySpace {
                     coordinate: (target.0 as usize, target.1 as usize),
+                    predecessor: Some(space.coordinate),
                     score: space.score + 1,
                 })
             });
         }
 
-        panic!("Failed to reach the exit");
-    }
-
-    pub fn debug(&self) {
-        self.memory.iter().for_each(|row| {
-            row.iter().for_each(|space| print!("{}", space));
-            println!();
-        });
+        None
     }
 }
 
@@ -158,7 +183,17 @@ const SIMULATION_ROUNDS: usize = 1024;
 pub fn run_part_1() {
     let mut computer = build_computer();
     computer.run_simulation(SIMULATION_ROUNDS);
-    computer.debug();
-    let steps = computer.find_shortest_path();
-    println!("{steps}");
+    let shortest_path = computer.find_shortest_path();
+
+    if let Some(coordinates) = shortest_path {
+        println!("{}", coordinates.len() - 1);
+    } else {
+        println!("No path found");
+    }
+}
+
+pub fn run_part_2() {
+    let mut computer = build_computer();
+    let blocking_byte = computer.run_simulation_until_blocked(SIMULATION_ROUNDS);
+    println!("{:?}", blocking_byte);
 }
