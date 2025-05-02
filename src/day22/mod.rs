@@ -1,3 +1,5 @@
+use std::collections::{HashMap, HashSet};
+
 use crate::read_input;
 
 fn read_initial_secret_numbers() -> Vec<usize> {
@@ -32,15 +34,84 @@ fn generate_next_secrets(initial_secret: usize, nb: usize) -> usize {
     secret
 }
 
-const PART_1_NB_SECRETS: usize = 2000;
-
 pub fn run_part_1() {
     let initial_secret_numbers = read_initial_secret_numbers();
 
     let sum = initial_secret_numbers
         .iter()
-        .map(|secret| generate_next_secrets(*secret, PART_1_NB_SECRETS))
+        .map(|secret| generate_next_secrets(*secret, 2000))
         .sum::<usize>();
 
     println!("{:?}", sum);
+}
+
+type Sequence = (isize, isize, isize, isize);
+
+fn generate_buyer_sequences(initial_secret: usize) -> HashMap<Sequence, usize> {
+    let mut sequences: HashMap<Sequence, usize> = HashMap::new();
+
+    let mut secret = initial_secret;
+    let mut previous_price = (secret % 10) as isize;
+
+    let mut changes = [0isize; 4];
+
+    // valid sequence contains 4 digits, so simply compute the changes for the first 3 prices
+    for i in 0..3 {
+        secret = generate_next_secret(secret);
+        let digit = (secret % 10) as isize;
+        changes[i] = digit - previous_price;
+        previous_price = digit;
+    }
+
+    for _ in 4..2000 {
+        secret = generate_next_secret(secret);
+        let digit = (secret % 10) as isize;
+        changes[3] = digit - previous_price;
+        previous_price = digit;
+
+        let sequence = (
+            changes[0],
+            changes[1],
+            changes[2],
+            changes[3],
+        );
+        if !sequences.contains_key(&sequence) {
+            // keep the price for the first occurence of each sequence
+            sequences.insert(sequence, previous_price.try_into().unwrap());
+        }
+
+        // sliding window, only keep the last 3 prices
+        // shift values for next loop iteration
+        // changes[3] will be set with next price on next loop iteration
+        changes[0] = changes[1];
+        changes[1] = changes[2];
+        changes[2] = changes[3];
+    }
+
+    sequences
+}
+
+pub fn run_part_2() {
+    let buyers_initial_secret_numbers = read_initial_secret_numbers();
+
+    let mut unique_sequences = HashSet::<Sequence>::new();
+    let mut buyers_sequences = Vec::new();
+
+    buyers_initial_secret_numbers.iter().for_each(|secret| {
+        let sequences = generate_buyer_sequences(*secret);
+        unique_sequences.extend(sequences.keys());
+        buyers_sequences.push(sequences);
+    });
+
+    let max_bananas = unique_sequences
+        .iter()
+        .map(|sequence| {
+            buyers_sequences
+                .iter()
+                .map(|buyer_sequences| buyer_sequences.get(sequence).unwrap_or(&0))
+                .sum::<usize>()
+        })
+        .max();
+
+    println!("{:?}", max_bananas);
 }
