@@ -2,8 +2,10 @@ use std::collections::{HashMap, HashSet};
 
 use crate::read_input;
 
-fn build_graph() -> HashMap<String, HashSet<String>> {
-    let mut graph: HashMap<String, HashSet<String>> = HashMap::new();
+type Graph = HashMap<String, HashSet<String>>;
+
+fn build_graph() -> Graph {
+    let mut graph: Graph = HashMap::new();
 
     read_input("day23", "input.txt")
         .unwrap()
@@ -49,4 +51,61 @@ pub fn run_part_1() {
         .count();
 
     println!("{}", count);
+}
+
+fn bron_kerbosch(
+    graph: &Graph,
+    r: &mut HashSet<String>,
+    p: &mut HashSet<String>,
+    x: &mut HashSet<String>,
+    max_clique_size: usize,
+) {
+    if p.is_empty() && x.is_empty() {
+        if r.len() == max_clique_size {
+            let mut values: Vec<String> = r.iter().cloned().collect();
+            values.sort();
+            println!("Found maximal clique: {:?}", values.join(","));
+        }
+    } else {
+        for v in p.clone() {
+            r.insert(v.clone());
+
+            let neighbors = graph.get(&v).unwrap();
+            let mut new_p = HashSet::new();
+            for node in p.iter() {
+                if neighbors.contains(node) {
+                    new_p.insert(node.clone());
+                }
+            }
+
+            let mut new_x = HashSet::new();
+            for node in x.iter() {
+                if neighbors.contains(node) {
+                    new_x.insert(node.clone());
+                }
+            }
+
+            bron_kerbosch(graph, r, &mut new_p, &mut new_x, max_clique_size);
+
+            r.remove(&v);
+            p.remove(&v);
+            x.insert(v);
+        }
+    }
+}
+
+pub fn run_part_2() {
+    let graph = build_graph();
+
+    let max_clique_size = graph.values().fold(0, |acc, v| acc.max(v.len()));
+
+    let mut r = HashSet::new();
+    let mut x = HashSet::new();
+    let mut p = HashSet::new();
+
+    for node in graph.keys() {
+        p.insert(node.clone());
+    }
+
+    bron_kerbosch(&graph, &mut r, &mut p, &mut x, max_clique_size);
 }
