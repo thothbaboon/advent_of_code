@@ -1,5 +1,9 @@
 use std::collections::HashMap;
 
+mod dot;
+
+use dot::generate_dot_file;
+
 use crate::read_input;
 
 fn parse_input() -> CrossedWiresSystem {
@@ -95,11 +99,51 @@ impl CrossedWiresSystem {
 
         result
     }
+
+    pub fn debug_expected_output(&self) {
+        let mut i = 0;
+        let mut x: usize = 0;
+        while let Some(v) = self.values.get(&format!("x{:02}", i)) {
+            x ^= (*v as usize) << i;
+            i += 1;
+        }
+
+        let mut i = 0;
+        let mut y: usize = 0;
+        while let Some(v) = self.values.get(&format!("y{:02}", i)) {
+            y ^= (*v as usize) << i;
+            i += 1;
+        }
+
+        println!("{:b}", x + y);
+    }
 }
 
 pub fn run_part_1() {
     let mut crossed_wires_system = parse_input();
     crossed_wires_system.execute_operations();
-    let r = crossed_wires_system.get_output_number();
-    println!("{:?}", r);
+    let output = crossed_wires_system.get_output_number();
+    println!("{:?}", output);
+}
+
+pub fn run_part_2() {
+    let mut crossed_wires_system = parse_input();
+    generate_dot_file(&crossed_wires_system);
+    crossed_wires_system.debug_expected_output();
+    crossed_wires_system.execute_operations();
+    let output = crossed_wires_system.get_output_number();
+    println!("{:b}", output);
+
+    let mut swaps: Vec<&str>= vec![
+        "mkk",
+        "z10",
+        "qbw",
+        "z14",
+        "wcb",
+        "z34",
+        "wjb",
+        "cvp"
+    ];
+    swaps.sort();
+    println!("{:?}", swaps.join(","));
 }

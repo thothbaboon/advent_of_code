@@ -79,4 +79,5 @@ fn main() {
     // day23::run_part_1();
     // day23::run_part_2();
     day24::run_part_1();
+    day24::run_part_2();
 }
