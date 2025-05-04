@@ -126,6 +126,7 @@ pub fn run_part_1() {
     println!("{:?}", output);
 }
 
+// to build the SVG: `dot -Tsvg  src/day24/day24.dot -o src/day24/day24.svg`
 pub fn run_part_2() {
     let mut crossed_wires_system = parse_input();
     generate_dot_file(&crossed_wires_system);
