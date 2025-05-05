@@ -22,7 +22,7 @@ mod day6;
 mod day7;
 mod day8;
 mod day9;
-
+mod day25;
 use std::fs::File;
 use std::io::{self, BufRead};
 
@@ -78,6 +78,7 @@ fn main() {
     // day22::run_part_2();
     // day23::run_part_1();
     // day23::run_part_2();
-    day24::run_part_1();
-    day24::run_part_2();
+    // day24::run_part_1();
+    // day24::run_part_2();
+    day25::run_part_1();
 }
