@@ -43,7 +43,7 @@ pub fn run_part_2() {
 
     let similarity_score = left.iter().fold(0, |acc, l| {
         let count = *right_counts.entry(*l).or_default();
-        return acc + (*l * count)
+        acc + (*l * count)
     });
 
     println!("{}", similarity_score);

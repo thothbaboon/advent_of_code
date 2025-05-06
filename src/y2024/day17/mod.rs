@@ -17,7 +17,7 @@ struct Computer {
 impl Computer {
     fn get_combo_operand_value(&self, operand: u8) -> usize {
         match operand {
-            0 | 1 | 2 | 3 => operand.into(),
+            0..=3 => operand.into(),
             4 => self.register_a,
             5 => self.register_b,
             6 => self.register_c,
@@ -43,7 +43,7 @@ impl Computer {
                     );
                 }
                 1 => {
-                    self.register_b = self.register_b ^ usize::from(instruction.operand);
+                    self.register_b ^= usize::from(instruction.operand);
                 }
                 2 => {
                     self.register_b = self.get_combo_operand_value(instruction.operand) % 8;
@@ -55,7 +55,7 @@ impl Computer {
                     }
                 }
                 4 => {
-                    self.register_b = self.register_b ^ self.register_c;
+                    self.register_b ^= self.register_c;
                 }
                 5 => {
                     output.push((self.get_combo_operand_value(instruction.operand) % 8) as u8);
@@ -97,7 +97,7 @@ fn parse_register(s: &str) -> usize {
 fn init_computer() -> Computer {
     let input = read_input(2024, 17)
         .unwrap()
-        .filter_map(Result::ok)
+        .map_while(Result::ok)
         .collect::<Vec<String>>();
 
     Computer {

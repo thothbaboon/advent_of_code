@@ -18,7 +18,7 @@ struct BathroomSecurity {
 impl BathroomSecurity {
     pub fn check_has_tree(&self) -> bool {
         // leverage the debug function built for step 1
-        // not the most efficient, but makes it very easy 
+        // not the most efficient, but makes it very easy
         self.print_debug()
             .split("\n")
             .any(|row| row.split(" ").any(|consecutive| consecutive.len() > 10))
@@ -53,8 +53,7 @@ impl BathroomSecurity {
 
         map.iter()
             .map(|row| {
-                let s = row
-                    .iter()
+                row.iter()
                     .map(|n| {
                         if *n == 0 {
                             " ".to_string()
@@ -62,8 +61,7 @@ impl BathroomSecurity {
                             n.to_string()
                         }
                     })
-                    .collect::<String>();
-                return s;
+                    .collect::<String>()
             })
             .collect::<Vec<_>>()
             .join("\n")
@@ -80,7 +78,7 @@ impl BathroomSecurity {
         let rows_first_half_range = rows_first_half.0..=rows_first_half.1;
         let rows_second_half_range = rows_second_half.0..=rows_second_half.1;
 
-        let mut quadrant_counts = vec![0usize; 4];
+        let mut quadrant_counts = [0usize; 4];
 
         self.robots.iter().for_each(|robot| {
             if rows_first_half_range.contains(&robot.row)
@@ -102,11 +100,7 @@ impl BathroomSecurity {
             }
         });
 
-        quadrant_counts
-            .iter()
-            .fold(1, |safety_factor, quadrant_count| {
-                safety_factor * quadrant_count
-            })
+        quadrant_counts.iter().product()
     }
 }
 
@@ -151,7 +145,7 @@ pub fn run_part_2() {
 
         if bathroom_security.check_has_tree() {
             println!("{}", bathroom_security.print_debug());
-            println!("");
+            println!();
             println!("Solution = {seconds}");
             break;
         }

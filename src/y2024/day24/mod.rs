@@ -9,36 +9,32 @@ use crate::read_input;
 fn parse_input() -> CrossedWiresSystem {
     let mut crossed_wires_system = CrossedWiresSystem::default();
 
-    let lines = read_input(2024, 24)
-        .unwrap()
-        .map_while(Result::ok);
+    let lines = read_input(2024, 24).unwrap().map_while(Result::ok);
 
     let mut did_find_separator = false;
     lines.for_each(|line| {
         if line.is_empty() {
             did_find_separator = true;
+        } else if did_find_separator {
+            let (left_part, destination_key) = line.split_once(" -> ").unwrap();
+            let left_parts: Vec<&str> = left_part.split(" ").collect();
+            let gate = match left_parts[1] {
+                "XOR" => Gate::Xor,
+                "AND" => Gate::And,
+                "OR" => Gate::Or,
+                _ => panic!("Unexpected value for Gate"),
+            };
+            crossed_wires_system.operations.push(Operation {
+                gate,
+                destination_key: destination_key.to_string(),
+                key1: left_parts[0].to_string(),
+                key2: left_parts[2].to_string(),
+            });
         } else {
-            if did_find_separator {
-                let (left_part, destination_key) = line.split_once(" -> ").unwrap();
-                let left_parts: Vec<&str> = left_part.split(" ").collect();
-                let gate = match left_parts[1] {
-                    "XOR" => Gate::XOR,
-                    "AND" => Gate::AND,
-                    "OR" => Gate::OR,
-                    _ => panic!("Unexpected value for Gate"),
-                };
-                crossed_wires_system.operations.push(Operation {
-                    gate,
-                    destination_key: destination_key.to_string(),
-                    key1: left_parts[0].to_string(),
-                    key2: left_parts[2].to_string(),
-                });
-            } else {
-                let (key, value) = line.split_once(": ").unwrap();
-                crossed_wires_system
-                    .values
-                    .insert(key.to_string(), value.parse::<u8>().unwrap());
-            }
+            let (key, value) = line.split_once(": ").unwrap();
+            crossed_wires_system
+                .values
+                .insert(key.to_string(), value.parse::<u8>().unwrap());
         }
     });
 
@@ -47,9 +43,9 @@ fn parse_input() -> CrossedWiresSystem {
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 enum Gate {
-    XOR,
-    OR,
-    AND,
+    Xor,
+    Or,
+    And,
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
@@ -68,15 +64,15 @@ struct CrossedWiresSystem {
 
 impl CrossedWiresSystem {
     pub fn execute_operations(&mut self) {
-        while self.operations.len() > 0 {
+        while !self.operations.is_empty() {
             let mut unprocessed_operations: Vec<Operation> = Vec::new();
             for operation in self.operations.iter().cloned() {
                 if let Some(v1) = self.values.get(&operation.key1) {
                     if let Some(v2) = self.values.get(&operation.key2) {
                         let result = match operation.gate {
-                            Gate::AND => v1 & v2,
-                            Gate::XOR => v1 ^ v2,
-                            Gate::OR => v1 | v2,
+                            Gate::And => v1 & v2,
+                            Gate::Xor => v1 ^ v2,
+                            Gate::Or => v1 | v2,
                         };
                         self.values
                             .insert(operation.destination_key.clone(), result);
@@ -135,16 +131,7 @@ pub fn run_part_2() {
     let output = crossed_wires_system.get_output_number();
     println!("{:b}", output);
 
-    let mut swaps: Vec<&str>= vec![
-        "mkk",
-        "z10",
-        "qbw",
-        "z14",
-        "wcb",
-        "z34",
-        "wjb",
-        "cvp"
-    ];
+    let mut swaps: Vec<&str> = vec!["mkk", "z10", "qbw", "z14", "wcb", "z34", "wjb", "cvp"];
     swaps.sort();
     println!("{:?}", swaps.join(","));
 }

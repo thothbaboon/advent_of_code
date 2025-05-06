@@ -1,6 +1,9 @@
 use crate::read_input;
 
-use super::{debugger::WarehouseDebugger, warehouse::{Cell, Move, Position, Robot, Warehouse}};
+use super::{
+    debugger::WarehouseDebugger,
+    warehouse::{Cell, Move, Position, Robot, Warehouse},
+};
 
 fn parse_cells(line: &str) -> Vec<Cell> {
     line.chars()
@@ -26,9 +29,7 @@ fn parse_moves(line: &str) -> Vec<Move> {
 
 pub fn init_warehouse() -> Warehouse {
     let mut empty_line_found = false;
-    let lines = read_input(2024, 15)
-        .unwrap()
-        .map_while(Result::ok);
+    let lines = read_input(2024, 15).unwrap().map_while(Result::ok);
 
     let mut grid: Vec<Vec<Cell>> = vec![];
     let mut moves: Vec<Move> = vec![];

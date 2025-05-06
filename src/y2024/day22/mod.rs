@@ -12,16 +12,16 @@ fn read_initial_secret_numbers() -> Vec<usize> {
 
 fn generate_next_secret(secret: usize) -> usize {
     let mut s1 = secret << 6;
-    s1 = s1 ^ secret;
-    s1 = s1 & ((1 << 24) - 1);
+    s1 ^= secret;
+    s1 &= (1 << 24) - 1;
 
     let mut s2 = s1 >> 5;
-    s2 = s2 ^ s1;
-    s2 = s2 & ((1 << 24) - 1);
+    s2 ^= s1;
+    s2 &= (1 << 24) - 1;
 
     let mut s3 = s2 << 11;
-    s3 = s3 ^ s2;
-    s3 = s3 & ((1 << 24) - 1);
+    s3 ^= s2;
+    s3 &= (1 << 24) - 1;
 
     s3
 }
@@ -56,10 +56,10 @@ fn generate_buyer_sequences(initial_secret: usize) -> HashMap<Sequence, usize> {
     let mut changes = [0isize; 4];
 
     // valid sequence contains 4 digits, so simply compute the changes for the first 3 prices
-    for i in 0..3 {
+    for change in changes.iter_mut().take(3) {
         secret = generate_next_secret(secret);
         let digit = (secret % 10) as isize;
-        changes[i] = digit - previous_price;
+        *change = digit - previous_price;
         previous_price = digit;
     }
 
@@ -69,16 +69,11 @@ fn generate_buyer_sequences(initial_secret: usize) -> HashMap<Sequence, usize> {
         changes[3] = digit - previous_price;
         previous_price = digit;
 
-        let sequence = (
-            changes[0],
-            changes[1],
-            changes[2],
-            changes[3],
-        );
-        if !sequences.contains_key(&sequence) {
-            // keep the price for the first occurence of each sequence
-            sequences.insert(sequence, previous_price.try_into().unwrap());
-        }
+        let sequence = (changes[0], changes[1], changes[2], changes[3]);
+        // keep the price for the first occurence of each sequence
+        sequences
+            .entry(sequence)
+            .or_insert_with(|| previous_price.try_into().unwrap());
 
         // sliding window, only keep the last 3 prices
         // shift values for next loop iteration

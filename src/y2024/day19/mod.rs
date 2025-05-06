@@ -5,7 +5,7 @@ use crate::read_input;
 fn read_patterns_and_designs() -> (Vec<String>, Vec<String>) {
     let lines: Vec<String> = read_input(2024, 19)
         .unwrap()
-        .filter_map(Result::ok)
+        .map_while(Result::ok)
         .collect();
 
     let patterns = lines[0].split(", ").map(|s| s.to_string()).collect();

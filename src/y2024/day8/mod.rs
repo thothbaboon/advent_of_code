@@ -16,8 +16,8 @@ fn read_antennas_input() -> Input {
 
     let mut antennas_by_label: HashMap<char, Vec<(isize, isize)>> = HashMap::new();
 
-    for row in 0..lines.len() {
-        for (col, ch) in lines[row].chars().enumerate() {
+    for (row, line) in lines.iter().enumerate() {
+        for (col, ch) in line.chars().enumerate() {
             if ch != '.' {
                 antennas_by_label
                     .entry(ch)

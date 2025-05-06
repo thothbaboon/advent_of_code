@@ -164,7 +164,7 @@ impl Computer {
 fn build_computer() -> Computer {
     let input = read_input(2024, 18)
         .unwrap()
-        .filter_map(Result::ok)
+        .map_while(Result::ok)
         .map(|line| {
             let (s_row, s_col) = line.split_once(",").unwrap();
             (

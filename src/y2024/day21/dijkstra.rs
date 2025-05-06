@@ -41,7 +41,7 @@ pub fn keypad_dijkstra(
     while let Some(candidate) = queue.pop() {
         let sequences = shortest_sequences.entry(candidate.key.clone()).or_default();
 
-        if sequences.len() > 0 && sequences[0].len() != candidate.sequence.len() {
+        if !sequences.is_empty() && sequences[0].len() != candidate.sequence.len() {
             // already found a shorter sequence, skip this one
             continue;
         }
@@ -52,7 +52,7 @@ pub fn keypad_dijkstra(
 
         for (dir, target_key) in directions.iter() {
             let mut candidate_sequence = candidate.sequence.clone();
-            candidate_sequence.push_str(&dir.as_str());
+            candidate_sequence.push_str(dir.as_str());
             queue.push(DijkstraCandidate {
                 key: target_key.to_string(),
                 sequence: candidate_sequence,

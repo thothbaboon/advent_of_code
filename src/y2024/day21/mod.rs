@@ -11,7 +11,7 @@ fn run(nb_layers: usize) -> usize {
 
     read_input(2024, 21)
         .unwrap()
-        .filter_map(Result::ok)
+        .map_while(Result::ok)
         .map(|code| {
             let s_len = kls.get_fewest_number_button_press_for_code(&code);
             let digit = code[0..3].parse::<usize>().unwrap_or(0);

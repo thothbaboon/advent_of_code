@@ -34,7 +34,7 @@ fn handle_stone(stone: usize, blinks: usize, memo: &mut HashMap<(usize, usize), 
     }
 
     if let Some(known_result) = memo.get(&(stone, blinks)) {
-        return *known_result;
+        *known_result
     } else {
         let unknown_result = if stone == 0 {
             handle_stone(1, blinks - 1, memo)
@@ -54,7 +54,7 @@ fn handle_stone(stone: usize, blinks: usize, memo: &mut HashMap<(usize, usize), 
         };
 
         memo.entry((stone, blinks)).or_insert(unknown_result);
-        return unknown_result;
+        unknown_result
     }
 }
 

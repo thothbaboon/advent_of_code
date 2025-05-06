@@ -67,16 +67,8 @@ impl RaceCondition {
         let (from_row, from_col) = from;
         let mut reachable_cells = Vec::new();
 
-        let search_bound_min_row = if from_row > max_distance {
-            from_row - max_distance
-        } else {
-            0
-        };
-        let search_bound_min_col = if from_col > max_distance {
-            from_col - max_distance
-        } else {
-            0
-        };
+        let search_bound_min_row = from_row.saturating_sub(max_distance);
+        let search_bound_min_col = from_col.saturating_sub(max_distance);
         let search_bound_max_row = std::cmp::min(from_row + max_distance, self.nb_rows - 1);
         let search_bound_max_col = std::cmp::min(from_col + max_distance, self.nb_cols - 1);
 
@@ -183,13 +175,14 @@ impl RaceCondition {
                     (candidate.position.1 as isize + direction.1) as usize,
                 );
 
-                if target.0 < self.nb_rows && target.1 < self.nb_cols {
-                    if self.racetrack[target.0][target.1] == Cell::Track {
-                        queue.push(DijkstraCandidate {
-                            position: target,
-                            distance_from_start: candidate.distance_from_start + 1,
-                        });
-                    }
+                if target.0 < self.nb_rows
+                    && target.1 < self.nb_cols
+                    && self.racetrack[target.0][target.1] == Cell::Track
+                {
+                    queue.push(DijkstraCandidate {
+                        position: target,
+                        distance_from_start: candidate.distance_from_start + 1,
+                    });
                 }
             }
         }
@@ -231,19 +224,16 @@ fn init_race_condition() -> RaceCondition {
 
 pub fn run(cheat_distance: usize) -> usize {
     let mut race_condition = init_race_condition();
-    let shortest_distance_without_cheat = race_condition
+    let shortest_distance_without_cheat = *race_condition
         .dijkstra(race_condition.start, race_condition.end)
         .get(&race_condition.end)
-        .unwrap()
-        .clone();
+        .unwrap();
 
-    let nb_qualified_cheats = race_condition.count_qualified_cheats(
+    race_condition.count_qualified_cheats(
         shortest_distance_without_cheat,
         MIN_SAVE_FOR_QUALIFIED_CHEAT,
         cheat_distance,
-    );
-
-    nb_qualified_cheats
+    )
 }
 
 pub fn run_part_1() {

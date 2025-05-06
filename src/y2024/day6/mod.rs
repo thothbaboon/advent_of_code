@@ -154,13 +154,12 @@ impl<'a> Runner<'a> {
                 return Some((next_position, current_direction));
             }
 
-            current_direction = DIRECTION_ROTATIONS
+            current_direction = *DIRECTION_ROTATIONS
                 .get(&current_direction)
-                .expect("No rotation found for direction")
-                .clone();
+                .expect("No rotation found for direction");
         }
 
-        return None;
+        None
     }
 
     pub fn run(&mut self) -> RunEnd {
@@ -190,7 +189,7 @@ fn init_grid() -> Grid {
 
     Grid(
         lines
-            .filter_map(Result::ok)
+            .map_while(Result::ok)
             .map(|line| line.chars().collect())
             .collect(),
     )
@@ -215,23 +214,21 @@ pub fn run_part_2() {
     let mut visited_cells = runner.visited_cells;
     visited_cells.remove(&initial_position);
 
-    let loops_counter =
-        visited_cells
-            .keys()
-            .into_iter()
-            .fold(0, |loops_counter, obstacle_position| {
-                grid.set_obstacle_at(obstacle_position);
+    let loops_counter = visited_cells
+        .keys()
+        .fold(0, |loops_counter, obstacle_position| {
+            grid.set_obstacle_at(obstacle_position);
 
-                let mut runner = Runner::new(&grid);
-                let run_end = runner.run();
-                grid.clean_at(obstacle_position);
+            let mut runner = Runner::new(&grid);
+            let run_end = runner.run();
+            grid.clean_at(obstacle_position);
 
-                if run_end == RunEnd::Loop {
-                    loops_counter + 1
-                } else {
-                    loops_counter
-                }
-            });
+            if run_end == RunEnd::Loop {
+                loops_counter + 1
+            } else {
+                loops_counter
+            }
+        });
 
     println!("{loops_counter}");
 }

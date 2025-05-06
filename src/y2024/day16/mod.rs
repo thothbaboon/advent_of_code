@@ -83,7 +83,7 @@ type SmallestScoresByTile = HashMap<(Position, Direction), usize>;
 fn parse_maze() -> Maze {
     read_input(2024, 16)
         .unwrap()
-        .filter_map(Result::ok)
+        .map_while(Result::ok)
         .map(|line| line.chars().collect::<Vec<_>>())
         .collect::<Vec<_>>()
 }
@@ -186,7 +186,7 @@ fn calculate_rotations(from_direction: Direction, to_direction: Direction) -> us
 // to discover all tiles beloging to a best path
 fn backward_tracing(smallest_scores: &SmallestScoresByTile, end: &Position) -> HashSet<Position> {
     let (smallest_direction, smallest_score) =
-        extract_smallest_score_for_position(&smallest_scores, end);
+        extract_smallest_score_for_position(smallest_scores, end);
 
     let mut tiles: HashSet<Position> = HashSet::new();
     let mut queue = [(*end, (smallest_direction, smallest_score))].to_vec();
@@ -205,16 +205,10 @@ fn backward_tracing(smallest_scores: &SmallestScoresByTile, end: &Position) -> H
             let predecessor_pos = tile.apply_direction(&opposite_dir);
 
             let predecessor_entries = [
-                (
-                    smallest_scores.get(&(predecessor_pos.clone(), NORTH)),
-                    NORTH,
-                ),
-                (
-                    smallest_scores.get(&(predecessor_pos.clone(), SOUTH)),
-                    SOUTH,
-                ),
-                (smallest_scores.get(&(predecessor_pos.clone(), EAST)), EAST),
-                (smallest_scores.get(&(predecessor_pos.clone(), WEST)), WEST),
+                (smallest_scores.get(&(predecessor_pos, NORTH)), NORTH),
+                (smallest_scores.get(&(predecessor_pos, SOUTH)), SOUTH),
+                (smallest_scores.get(&(predecessor_pos, EAST)), EAST),
+                (smallest_scores.get(&(predecessor_pos, WEST)), WEST),
             ]
             .to_vec();
 

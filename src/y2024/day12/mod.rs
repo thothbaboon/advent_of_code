@@ -41,7 +41,7 @@ impl Garden {
         queue.insert((r, c));
         let label = grid[r][c].label;
 
-        while queue.len() > 0 {
+        while !queue.is_empty() {
             let mut new_queue = HashSet::new();
 
             for cell in queue {

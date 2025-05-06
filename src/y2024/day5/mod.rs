@@ -5,7 +5,7 @@ use std::{
 
 use crate::read_input;
 
-fn are_pages_ordered(pages: &Vec<usize>, orderings: &HashMap<usize, Vec<usize>>) -> bool {
+fn are_pages_ordered(pages: &[usize], orderings: &HashMap<usize, Vec<usize>>) -> bool {
     let mut discovered: HashSet<usize> = HashSet::new();
 
     !pages.iter().any(|page| {
@@ -26,7 +26,7 @@ fn get_orderings() -> HashMap<usize, Vec<usize>> {
     let ordering_lines = read_input(2024, 5).unwrap();
 
     ordering_lines
-        .filter_map(Result::ok)
+        .map_while(Result::ok)
         .filter_map(|line| {
             let mut values = line.split('|');
             let key = values.next()?.parse().ok()?;
@@ -72,7 +72,7 @@ fn reorder_pages(
                 return Ordering::Less;
             }
         }
-        return Ordering::Greater;
+        Ordering::Greater
     });
     pages
 }

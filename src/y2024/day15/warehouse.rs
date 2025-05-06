@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::fmt::{self, Debug};
 
 use super::debugger::WarehouseDebugger;
 
@@ -47,8 +47,8 @@ pub struct Warehouse {
     pub debugger: WarehouseDebugger,
 }
 
-impl Warehouse {
-    fn to_string(&self) -> String {
+impl fmt::Display for Warehouse {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut rows = self
             .grid
             .iter()
@@ -69,9 +69,11 @@ impl Warehouse {
         rows_str.replace_range(self.robot.position.1..self.robot.position.1 + 1, "@");
         rows[self.robot.position.0] = rows_str;
 
-        rows.join("\n") + "\n"
+        write!(f, "{}", rows.join("\n") + "\n")
     }
+}
 
+impl Warehouse {
     pub fn make_wide(&mut self) {
         self.grid = self
             .grid
@@ -87,7 +89,7 @@ impl Warehouse {
                     .collect()
             })
             .collect();
-        self.robot.position.1 = self.robot.position.1 * 2;
+        self.robot.position.1 *= 2;
     }
 
     pub fn compute_gps_coordinates_sum(&self) -> usize {
@@ -156,12 +158,9 @@ impl Warehouse {
 
         // When moving vertically, need to handle both sides of the box at the same time
         let (left_pos, right_pos) = if self.grid[box_pos.0][box_pos.1] == Cell::BoxLeft {
-            (
-                box_pos.clone(),
-                Position::apply_move(&box_pos, &Move::RIGHT),
-            )
+            (box_pos.clone(), Position::apply_move(box_pos, &Move::RIGHT))
         } else {
-            (Position::apply_move(&box_pos, &Move::LEFT), box_pos.clone())
+            (Position::apply_move(box_pos, &Move::LEFT), box_pos.clone())
         };
         let (left_target_pos, right_target_pos) = (
             Position::apply_move(&left_pos, r#move),
@@ -208,35 +207,36 @@ impl Warehouse {
 
         //   []
         //  []
-        if *left_target == Cell::Empty {
-            if self.try_move_wide_box(&right_target_pos, r#move, is_readonly) {
-                if !is_readonly {
-                    self.move_box(&left_pos, &right_pos, &left_target_pos, &right_target_pos);
-                }
-                return true;
+        if *left_target == Cell::Empty
+            && self.try_move_wide_box(&right_target_pos, r#move, is_readonly)
+        {
+            if !is_readonly {
+                self.move_box(&left_pos, &right_pos, &left_target_pos, &right_target_pos);
             }
+            return true;
         }
 
         // []
         //  []
-        if *right_target == Cell::Empty {
-            if self.try_move_wide_box(&left_target_pos, r#move, is_readonly) {
-                if !is_readonly {
-                    self.move_box(&left_pos, &right_pos, &left_target_pos, &right_target_pos);
-                }
-                return true;
+        if *right_target == Cell::Empty
+            && self.try_move_wide_box(&left_target_pos, r#move, is_readonly)
+        {
+            if !is_readonly {
+                self.move_box(&left_pos, &right_pos, &left_target_pos, &right_target_pos);
             }
+            return true;
         }
 
         //  []
         //  []
-        if *right_target == Cell::BoxRight && *left_target == Cell::BoxLeft {
-            if self.try_move_wide_box(&left_target_pos, r#move, is_readonly) {
-                if !is_readonly {
-                    self.move_box(&left_pos, &right_pos, &left_target_pos, &right_target_pos);
-                }
-                return true;
+        if *right_target == Cell::BoxRight
+            && *left_target == Cell::BoxLeft
+            && self.try_move_wide_box(&left_target_pos, r#move, is_readonly)
+        {
+            if !is_readonly {
+                self.move_box(&left_pos, &right_pos, &left_target_pos, &right_target_pos);
             }
+            return true;
         }
 
         false

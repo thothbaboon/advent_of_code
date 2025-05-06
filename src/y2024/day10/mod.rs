@@ -39,7 +39,7 @@ impl Map {
         let mut elevation = 0;
         let mut positions = vec![(r, c)];
 
-        while positions.len() > 0 && elevation < 9 {
+        while !positions.is_empty() && elevation < 9 {
             elevation += 1;
             let mut next_positions = Vec::new();
 
@@ -57,7 +57,7 @@ impl Map {
         let mut elevation = 0;
         let mut positions = HashSet::from_iter(vec![(r, c)]);
 
-        while positions.len() > 0 && elevation < 9 {
+        while !positions.is_empty() && elevation < 9 {
             elevation += 1;
             let mut next_positions = HashSet::new();
 

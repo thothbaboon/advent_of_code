@@ -60,10 +60,7 @@ impl KeypadLayeringSystem {
         to: &char,
         remaining_nb_layers: usize,
     ) -> usize {
-        if let Some(cached_value) = self
-            .cache
-            .get(&(from.clone(), to.clone(), remaining_nb_layers))
-        {
+        if let Some(cached_value) = self.cache.get(&(*from, *to, remaining_nb_layers)) {
             return *cached_value;
         }
 
@@ -100,10 +97,8 @@ impl KeypadLayeringSystem {
             shortest_sequence_length = shortest_sequence_length.min(length);
         }
 
-        self.cache.insert(
-            (from.clone(), to.clone(), remaining_nb_layers),
-            shortest_sequence_length,
-        );
+        self.cache
+            .insert((*from, *to, remaining_nb_layers), shortest_sequence_length);
 
         shortest_sequence_length
     }

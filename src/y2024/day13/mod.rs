@@ -30,7 +30,7 @@ impl ClawConfiguration {
         let d_a = Self::compute_determinant(&self.prize, &self.b);
         let d_b = Self::compute_determinant(&self.a, &self.prize);
 
-        return (d_a / d) * 3.0 + (d_b / d);
+        (d_a / d) * 3.0 + (d_b / d)
     }
 }
 

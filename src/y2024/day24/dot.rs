@@ -7,7 +7,7 @@ pub fn generate_dot_file(crossed_wires_system: &CrossedWiresSystem) {
     let ands: Vec<String> = crossed_wires_system
         .operations
         .iter()
-        .filter(|operation| operation.gate == Gate::AND)
+        .filter(|operation| operation.gate == Gate::And)
         .map(|operation| {
             format!(
                 "{}_AND_{} [label=\"AND {}\", shape=invtriangle];",
@@ -18,7 +18,7 @@ pub fn generate_dot_file(crossed_wires_system: &CrossedWiresSystem) {
     let ors: Vec<String> = crossed_wires_system
         .operations
         .iter()
-        .filter(|operation| operation.gate == Gate::OR)
+        .filter(|operation| operation.gate == Gate::Or)
         .map(|operation| {
             format!(
                 "{}_OR_{} [label=\"OR {}\", shape=diamond];",
@@ -29,7 +29,7 @@ pub fn generate_dot_file(crossed_wires_system: &CrossedWiresSystem) {
     let xors: Vec<String> = crossed_wires_system
         .operations
         .iter()
-        .filter(|operation| operation.gate == Gate::XOR)
+        .filter(|operation| operation.gate == Gate::Xor)
         .map(|operation| {
             format!(
                 "{}_XOR_{} [label=\"XOR {}\", shape=hexagon];",
@@ -111,6 +111,6 @@ pub fn generate_dot_file(crossed_wires_system: &CrossedWiresSystem) {
         connections.join(" ")
     );
 
-    let mut file = File::create("src/day24/day24.dot").unwrap();
+    let mut file = File::create("src/y2024/day24/day24.dot").unwrap();
     file.write_all(graph.as_bytes()).unwrap();
 }
