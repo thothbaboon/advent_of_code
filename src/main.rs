@@ -26,6 +26,8 @@ fn main() {
     match (year.as_str(), day.as_str(), part.as_str()) {
         ("2020", "1", "1") => y2020::day1::run_part_1(),
         ("2020", "1", "2") => y2020::day1::run_part_2(),
+        ("2020", "2", "1") => y2020::day2::run_part_1(),
+        ("2020", "2", "2") => y2020::day2::run_part_2(),
 
         ("2024", "1", "1") => y2024::day1::run_part_1(),
         ("2024", "1", "2") => y2024::day1::run_part_2(),
