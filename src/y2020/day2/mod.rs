@@ -13,26 +13,27 @@ fn read_password_inputs() -> Vec<PasswordInput> {
         .unwrap()
         .map_while(Result::ok)
         .map(|line| {
-            let line_parts: Vec<&str> = line.trim().split_whitespace().collect();
+            let line_parts: Vec<&str> = line.split_whitespace().collect();
 
-            let min_occ_string = line_parts[0].split("-").nth(0).unwrap().to_string();
-            let max_occ_string = line_parts[0].split("-").nth(1).unwrap().to_string();
+            let mut parts = line_parts[0].split("-");
+            let min_occ_string = parts.next().unwrap().to_string();
+            let max_occ_string = parts.next().unwrap().to_string();
 
             let password: String = line_parts[2].into();
 
             let letter: char = line_parts[1]
                 .split(":")
-                .nth(0)
+                .next()
                 .unwrap()
                 .chars()
-                .nth(0)
+                .next()
                 .unwrap();
 
             PasswordInput {
                 first_value: min_occ_string.parse::<usize>().unwrap(),
                 second_value: max_occ_string.parse::<usize>().unwrap(),
-                password: password,
-                letter: letter,
+                password,
+                letter,
             }
         })
         .collect()

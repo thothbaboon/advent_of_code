@@ -17,7 +17,7 @@ fn read_map() -> Vec<Vec<Cell>> {
         .collect()
 }
 
-fn count_trees_on_slope(map: &Vec<Vec<Cell>>, right_step: usize, bottom_step: usize) -> usize {
+fn count_trees_on_slope(map: &[Vec<Cell>], right_step: usize, bottom_step: usize) -> usize {
     let mut trees_counter: usize = 0;
 
     let width = map[0].len();
