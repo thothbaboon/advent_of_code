@@ -21,17 +21,15 @@ fn read_yes_answers_count_of_groups() -> Vec<GroupCount> {
         .collect::<Vec<String>>();
 
     for line in lines {
-        if line == "" {
+        if line.is_empty() {
             groups_yes_answers.push(current_group_yes_answers);
             current_group_yes_answers = GroupCount::default()
         } else {
             for c in line.chars() {
-                if !current_group_yes_answers
+                current_group_yes_answers
                     .yes_count_by_answer
-                    .contains_key(&c)
-                {
-                    current_group_yes_answers.yes_count_by_answer.insert(c, 0);
-                }
+                    .entry(c)
+                    .or_insert(0);
 
                 let counter = current_group_yes_answers
                     .yes_count_by_answer
