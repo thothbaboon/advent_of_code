@@ -25,13 +25,12 @@ pub fn read_bus_loop_times_with_index() -> Vec<(u128, u128)> {
     lines[1]
         .split(',')
         .enumerate()
-        .map(|(i, v)| {
+        .filter_map(|(i, v)| {
             if v == "x" {
                 return None;
             }
             Some((v.parse::<u128>().unwrap(), i as u128))
         })
-        .flatten()
         .collect()
 }
 
