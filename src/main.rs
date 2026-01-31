@@ -1,3 +1,4 @@
+mod y2015;
 mod y2020;
 mod y2024;
 mod y2025;
@@ -25,6 +26,9 @@ fn main() {
     let part = &args[3];
 
     match (year.as_str(), day.as_str(), part.as_str()) {
+        ("2015", "1", "1") => y2015::day1::run_part_1(),
+        ("2015", "1", "2") => y2015::day1::run_part_2(),
+
         ("2020", "1", "1") => y2020::day1::run_part_1(),
         ("2020", "1", "2") => y2020::day1::run_part_2(),
         ("2020", "2", "1") => y2020::day2::run_part_1(),
