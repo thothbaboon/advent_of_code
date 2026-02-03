@@ -30,8 +30,8 @@ fn is_nice(s: &str, vowels: &HashSet<char>, forbidden_substrings: &[&str]) -> bo
 
 fn has_pair_appearing_twice(s: &str) -> bool {
     for i in 1..s.len() {
-        for j in i+2..s.len() {
-            if s.get(i-1..=i) == s.get(j-1..=j) {
+        for j in i + 2..s.len() {
+            if s.get(i - 1..=i) == s.get(j - 1..=j) {
                 return true;
             }
         }
@@ -66,9 +66,6 @@ pub fn run_part_1() {
 }
 
 pub fn run_part_2() {
-    let c = read_strings()
-        .into_iter()
-        .filter(|s| is_nice_v2(s))
-        .count();
+    let c = read_strings().into_iter().filter(|s| is_nice_v2(s)).count();
     assert_eq!(c, 69);
 }
