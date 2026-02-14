@@ -7,7 +7,7 @@ fn read_puzzle_input() -> String {
         .collect()
 }
 
-fn increment(password: &mut Vec<u32>) {
+fn increment(password: &mut [u32]) {
     let mut i = password.len();
 
     while i > 0 {
@@ -78,7 +78,7 @@ fn get_next_password(password: &mut Vec<u32>) {
 }
 
 fn run(password: &str) -> String {
-    let mut password_digits: Vec<u32> = string_to_digits(&password);
+    let mut password_digits: Vec<u32> = string_to_digits(password);
     get_next_password(&mut password_digits);
     digits_to_string(&password_digits)
 }
